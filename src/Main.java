@@ -57,10 +57,6 @@ public class Main {
                 .format(DateTimeFormatter.ofPattern(dateFormat)) + ".txt");
         FileWriter writer;
         //==================================================================================
-//        Scanner scanner = new Scanner(System.in);
-//        for (; ; ) {
-//            String regexVersion = "^\\d\\.\\d\\.\\d\\.\\d\\(\\w\\d{4}\\.\\d{4}\\)$";
-//            if (Files.exists(pathActualVer) && Files.isRegularFile(pathActualVer)) {
         BufferedReader reader = new BufferedReader(new FileReader(pathActualVer.toFile()));
         actualVerSnr = reader.readLine();
         actualVerSnr10 = reader.readLine();
@@ -70,64 +66,6 @@ public class Main {
                 + "\nАктуальная версия SNR 10G: " + actualVerSnr10
                 + "\nАктуальная версия TPLINK:  " + actualVerTpl);
         Thread.sleep(5000);
-//                if (actualVer.matches(regexVersion)) {
-//                    System.out.println("Актуальная версия прошивки SNR: " + "\"" + actualVer + "\"? [Y/N]:");
-//                    String answer = scanner.nextLine().trim();
-//                    if (answer.equalsIgnoreCase("y")) {
-//                        break;
-//                    } else if (answer.equalsIgnoreCase("n")) {
-//                        for (; ; ) {
-//                            System.out.println("введите версию прошивки SNR в формате: \"7.0.3.5(R0241.0551)\":");
-//                            actualVer = scanner.nextLine().trim();
-//                            if (actualVer.matches(regexVersion)) {
-//                                writer = new FileWriter(pathActualVer.toFile());
-//                                writer.write(actualVer);
-//                                writer.flush();
-//                                writer.close();
-//                                break;
-//                            } else System.out.println("Wrong format! Try again...");
-//                        }
-//                        break;
-//                    } else System.out.println("введите версию прошивки SNR в формате: \"7.0.3.5(R0241.0551)\":");
-//                }
-//                break;
-//            }
-//            else {
-//                System.out.println("введите версию прошивки SNR в формате: \"7.0.3.5(R0241.0551)\":");
-//                for (; ; ) {
-//                    String enter = scanner.nextLine().trim();
-//                    if (enter.matches(regexVersion)) {
-//                        writer = new FileWriter(pathActualVer.toFile());
-//                        writer.write(enter);
-//                        writer.flush();
-//                        writer.close();
-//                        break;
-//                    } else System.out.println("Wrong format! Try again...");
-//                }
-//                break;
-//            }
-//        }
-        //==================================================================================
-//        if (!Files.isRegularFile(pathFile) || !Files.exists(pathFile)) {
-//            System.out.println("Введите полное имя файла со списком коммутаторов:");
-//            for (; ; ) {
-//                pathFile = Paths.get(scanner.nextLine().trim());
-//                if (!Files.isRegularFile(pathFile) && !Files.exists(pathFile)) {
-//                    System.out.println("File is not found! Try again...");
-//                } else break;
-//            }
-//        }
-        //==================================================================================
-//        System.out.println("Сколько коммутаторов необходимо прошить?");
-//        for (; ; ) {
-//            String str = scanner.nextLine().trim();
-//            if (str.matches("\\D") || str.isEmpty()) {
-//                System.out.println("Wrong format! Try again...");
-//            } else {
-//                countUpdateLimit = Integer.parseInt(str);
-//                break;
-//            }
-//        }
         //==================================================================================
         JsonArray jsonArray = JsonParser.parseReader(Files.newBufferedReader(pathFile)).getAsJsonArray();
         for (JsonElement jsonElement : jsonArray) {
@@ -144,11 +82,9 @@ public class Main {
             StringBuilder builder = new StringBuilder();
             System.out.println("\n\n===============Коммутатор №" + count + "===============");
             System.out.println(address + " - " + typeName);
-            //==================================================================================
             count++;
             //==================================================================================
             if (hasConnect(address)) {
-                //==================================================================================
                 try {
                     String realTypeName = null;
                     String actualVersion = null;
@@ -194,9 +130,9 @@ public class Main {
                     //================================SWITCH MODEL===================================
                     if (!actualVersion(currentVersion, actualVersion)) {
                         switch (type) {
-//                            case SNR65, SNR8xPOE, SNR85GU, SNR85G8P
-//                                    -> aSwitch = new S29xx(address, login, password, hostName);
-//                            case SNR10G -> aSwitch = new S5210g(address, login, password, hostName);
+                            case SNR65, SNR8xPOE, SNR85GU, SNR85G8P
+                                    -> aSwitch = new S29xx(address, login, password, hostName);
+                            case SNR10G -> aSwitch = new S5210g(address, login, password, hostName);
                             case TPL -> aSwitch = new TpLink(address, login, password, hostName);
                         }
                     } else {
