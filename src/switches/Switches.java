@@ -1,7 +1,6 @@
 package switches;
 
 import moves.AutomatedTelnetClient;
-import moves.SnmpWalk;
 
 import java.io.IOException;
 import java.time.LocalTime;

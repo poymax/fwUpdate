@@ -1,8 +1,6 @@
 package switches;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
 
 public class TpLink extends Switches {
     private final String TFTP = "/TPL/TL-SG3428X-UPS/";
@@ -24,7 +22,6 @@ public class TpLink extends Switches {
         telnet.write("boot application filename " +  telnet.getBackupImage() + " startup");
         telnet.readUntil(HOSTNAME + "(config)#");
         telnet.write("reboot-schedule at 04:30 save_before_reboot");
-        telnet.readUntil(HOSTNAME + "(config)#");
         telnet.readUntil("(Y/N):");
         telnet.write("Y");
         telnet.readUntil(HOSTNAME + "(config)#");

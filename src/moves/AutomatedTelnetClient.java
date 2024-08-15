@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class AutomatedTelnetClient {
     private final TelnetClient telnet = new TelnetClient();
