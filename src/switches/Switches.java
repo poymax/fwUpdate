@@ -23,14 +23,13 @@ public abstract class Switches {
         telnet.write("Y");
         telnet.readUntil(hostName + "#");
     }
-    public void upgradeFirmware () throws IOException, InterruptedException {
+    public void upgradeFirmware() throws IOException, InterruptedException {
         LocalTime currentTime = LocalTime.now();
         telnet.readUntil(hostName + "#");
-        telnet.write("reload after " + Math.abs(currentTime.getHour() - 27)
-                + ":" + (Math.abs(currentTime.getMinute() - 29))
-                + ":" + (Math.abs(currentTime.getSecond() - 60)));
-        telnet.readUntil(hostName + "#");
-        telnet.disconnect();
+        telnet.write("reload after "
+                + ((currentTime.getMinute() <= 29 ? 28 : 27) - currentTime.getHour()) + ":"
+                + ((currentTime.getMinute() <= 29 ? 29 : 89) - currentTime.getMinute()) + ":"
+                + (59 - currentTime.getSecond()));
     }
     public void setPathTftp(String typeName) {
     }

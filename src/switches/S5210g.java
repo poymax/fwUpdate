@@ -17,5 +17,7 @@ public class S5210g extends Switches {
         String FW = "enos.bix file vmlinux.bix";
         telnet.write("copy tftp " + TFTP + FW);
         super.upgradeFirmware();
+        telnet.readUntil(hostName + "#");
+        telnet.disconnect();
     }
 }

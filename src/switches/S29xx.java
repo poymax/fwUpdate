@@ -5,9 +5,10 @@ import java.io.IOException;
 public class S29xx extends Switches {
     final String BOOTROOM = "boot.rom boot.rom";
     private final String FW = "nos.img nos.img";
-    private String tftp = "tftp://10.80.3.161/SNR/SNR-S2965/";
-    public S29xx(String address, String login, String password, String hostName) throws IOException {
+    private String tftp;
+    public S29xx(String address, String login, String password, String hostName, String typeName) throws IOException {
         super(address, login, password, hostName);
+        setPathTftp(typeName);
     }
     @Override
     public void upgradeBootRoom() throws IOException {
@@ -19,6 +20,9 @@ public class S29xx extends Switches {
         telnet.readUntil("[Y/N]:");
         telnet.write("Y");
         super.upgradeFirmware();
+        telnet.readUntil("[Y/N]");
+        telnet.write("Y");
+        telnet.disconnect();
     }
     public void setPathTftp(String typeName) {
         String TFTP2965 = "tftp://10.80.3.161/SNR/SNR-S2965/";

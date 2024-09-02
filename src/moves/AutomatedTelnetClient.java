@@ -9,9 +9,9 @@ import java.net.InetAddress;
 
 public class AutomatedTelnetClient {
     private final TelnetClient telnet = new TelnetClient();
-    private InputStream in;
-    private PrintStream out;
-    private String address;
+    private final InputStream in;
+    private final PrintStream out;
+    private final String address;
     public AutomatedTelnetClient(String address) throws IOException {
         telnet.connect(address, 23);
         this.address = address;

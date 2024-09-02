@@ -34,6 +34,7 @@ public class SnmpWalk {
                 result = response.get(0).getVariable().toString();
                 break;
             }
+            Thread.sleep(1000);
         }
         snmp.close();
         return result;

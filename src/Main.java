@@ -1,4 +1,6 @@
 import com.google.gson.*;
+import com.sun.jdi.VMDisconnectedException;
+import netscape.javascript.JSObject;
 import switches.*;
 import moves.SnmpWalk;
 
@@ -13,6 +15,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class Main {
     public static void main(String[] args) throws IOException, ParseException, InterruptedException {
@@ -36,6 +39,7 @@ public class Main {
         String currentVersion = null;
         SnmpWalk snmpWalk;
         String dateFormat = "yy-MM-dd HH-mm-ss";
+        String timeFormat = "HH:mm:ss";
         String projectDir = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         if (projectDir.matches("(.*).jar")) {
             projectDir = projectDir.substring(0, projectDir.lastIndexOf("/") + 1);
@@ -85,23 +89,31 @@ public class Main {
             count++;
             //==================================================================================
             if (hasConnect(address)) {
-                try {
+                while (hasConnect(address)) {
                     String realTypeName = null;
                     String actualVersion = null;
                     switch (type) {
-                    case SNR65, SNR85GU, SNR85G8P, SNR10G
+                        case SNR65, SNR85GU, SNR85G8P, SNR10G
                             -> realTypeName = snmpWalk.getVariable(community, address, OIDSNRMODEL);
                         case TPL -> realTypeName = snmpWalk.getVariable(community, address, OIDTPLMODEL);
                     }
+                    LocalTime currentTime = LocalTime.now();
                     builder.append(address)
-                        .append("\n\t");
-                    if (type == SNR8xPOE && realTypeName.matches(regexPoe8x)) {
-                        typeName = realTypeName;
-                    } else if (!realTypeName.equalsIgnoreCase(typeName)) {
-                        builder.append("Model incorrect!\n");
+                            .append("\t\t-\t")
+                            .append(typeName + "\n");
+                    try {
+                        if (type == SNR8xPOE && realTypeName.matches(regexPoe8x)) {
+                            typeName = realTypeName;
+                        } else if (!realTypeName.equalsIgnoreCase(typeName)) {
+                            builder.append("\tMODEL INCORRECT!\n");
+                            logFile.write(builder.toString());
+                            logFile.flush();
+                            break;
+                        }
+                    } catch (NullPointerException ex) {
                         logFile.write(builder.toString());
                         logFile.flush();
-                        continue;
+                        break;
                     }
                     //===================Get Current Version SNR or TpLink============================
                     switch (type) {
@@ -120,18 +132,21 @@ public class Main {
                         }
                     }
                     //================================================================================
-                    builder.append(typeName)
-                        .append("\n\t\t")
-                        .append(currentVersion);
+                    builder.append("\t" + currentVersion);
                     System.out.println("Current version: " + currentVersion);
-                    assert currentVersion != null;
+                    if (currentVersion == null) {
+                        builder.append(";\n");
+                        logFile.write(builder.toString());
+                        logFile.flush();
+                        break;
+                    }
                     String hostName = snmpWalk.getVariable(community, address, OIDHOSTNAME);
                     Switches aSwitch = null;
                     //================================SWITCH MODEL===================================
                     if (!actualVersion(currentVersion, actualVersion)) {
                         switch (type) {
                             case SNR65, SNR8xPOE, SNR85GU, SNR85G8P
-                                    -> aSwitch = new S29xx(address, login, password, hostName);
+                                    -> aSwitch = new S29xx(address, login, password, hostName, typeName);
                             case SNR10G -> aSwitch = new S5210g(address, login, password, hostName);
                             case TPL -> aSwitch = new TpLink(address, login, password, hostName);
                         }
@@ -139,33 +154,39 @@ public class Main {
                         builder.append("\n");
                         logFile.write(builder.toString());
                         logFile.flush();
-                        continue;
+                        break;
                     }
                     //================================SWITCH UPDATE===================================
-                    LocalTime before = LocalTime.now();
-                    aSwitch.upgradeFirmware();
-                    LocalTime currentTime = LocalTime.now();
-                    builder.append("\t-->\t")
-                            .append(actualVersion)
-                            .append("\n");
-                    logFile.write(builder.toString());
-                    logFile.flush();
-                    countUpdate++;
-                    System.out.println("\n\nВремя залития прошивки: "
-                            + before.until(currentTime, ChronoUnit.MINUTES) + " мин "
-                            + before.until(currentTime, ChronoUnit.SECONDS) % 60 + " сек");
-                    System.out.println("Прошито коммутаторов: " + countUpdate + " из " + countUpdateLimit);
-                } catch (NullPointerException ex) {
-                    logFile.write("\n\tSwitch has disconnected!\n");
+                    try {
+                        LocalTime before = LocalTime.now();
+                        aSwitch.upgradeFirmware();
+                        currentTime = LocalTime.now();
+                        countUpdate++;
+                        builder.append("\t-->\t")
+                                .append(actualVersion)
+                                .append(";\n\t")
+                                .append(currentTime.format(DateTimeFormatter.ofPattern(timeFormat)))
+                                .append(".\tПрошит: " + countUpdate)
+                                .append(" коммутатор;\n");
+                        logFile.write(builder.toString());
+                        logFile.flush();
+                        System.out.println("\n\nВремя залития прошивки: "
+                                + before.until(currentTime, ChronoUnit.MINUTES) + " мин "
+                                + before.until(currentTime, ChronoUnit.SECONDS) % 60 + " сек");
+                        System.out.println("Прошито коммутаторов: " + countUpdate + " из " + countUpdateLimit);
+                    } catch (NullPointerException ex) {
+                        builder.append(";\n\tupdate is break!\n");
+                        logFile.write(builder.toString());
+                        logFile.flush();
+                    }
+                    break;
                 }
                 if (countUpdate == countUpdateLimit) {
-                    logFile.write("Прошито " + countUpdate + " коммутаторов!");
-                    logFile.flush();
                     break;
                 };
             } else {
                 builder.append(address)
-                        .append("\n\tfuck the connect!\n");
+                        .append(" - \tThe host is not available!\n");
                 logFile.write(builder.toString());
                 logFile.flush();
             }
